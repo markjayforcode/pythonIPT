@@ -41,7 +41,7 @@ def main():
     setting(setting_frame)  # Call function from settings.py
     navigationBar.add(setting_frame, text="Settings")
 
-
+    
    
 
     root.mainloop()
