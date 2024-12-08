@@ -1,21 +1,34 @@
 from tkinter import *
+from tkinter import ttk
+from dashboard import create_dashboard
+from expenses import create_expenses
+from add_expenses import add_expenses
 
-root = Tk() 
-root.geometry("600x350")
-root.resizable(height=False, width=False)
-root.title("Expense Tracker")
+def main():
+    root = Tk()
+    root.geometry("600x350")
+    root.title("Expense Tracker")
 
-# Total Expense and Total Budget Labels with minimal column gap
-totExp = Label(root, text="Total Expense: N/A", font="50") 
-totExp.grid(row=0, column=0, padx=(80,0), sticky="w")  # Left-aligned with some padding
+    # Create Notebook (Tabbed Interface)
+    navigationBar = ttk.Notebook(root)
+    navigationBar.pack(fill="both", expand=True)
 
-totBud = Label(root, text="Total Budget: N/A", font="50")
-totBud.grid(row=0, column=1, padx=(50,50), sticky="w")  # Close to the first label
+    # Dashboard Tab
+    dashboard_frame = Frame(navigationBar)
+    create_dashboard(dashboard_frame,navigationBar)  # Call function from dashboard.py
+    navigationBar.add(dashboard_frame, text="Dashboard")
 
-addExp = Button(root, text="Add Expense", font="50")
-addExp.grid(row=1, column=0, padx=(80,0), pady=(20,0), sticky="w")  # Left-aligned with some padding
+    # Expenses Tab
+    expenses_frame = Frame(navigationBar)
+    create_expenses(expenses_frame)  # Call function from expenses.py
+    navigationBar.add(expenses_frame, text="Expenses")
 
-viewExp = Button(root, text="View Expenses", font="50")
-viewExp.grid(row=1, column=1, padx=(50,50), pady=(20,0), sticky="w")  # Close to the first button
+     # Expenses Tab
+    addexp_frame = Frame(navigationBar)
+    add_expenses(addexp_frame)  # Call function from add_expenses.py
+    navigationBar.add(addexp_frame, text="Add Expenses")
 
-root.mainloop()
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
