@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import DateEntry
 from database import add_expense
+from expenses import refresh_treeview
 
 def add_expenses(frame):
     categories = ["Food", "Transpo", "Utilities", "Rent", "Insurance", "Health", "Education", "Entertainment", "Others"]
@@ -50,13 +51,18 @@ def submit_expense():
     if not amount or category == "Select a Category": 
         print("Please fill in all fields")
         return
+    
+    #currency symbol
+    amount_with_currency = f"₱{amount}"
 
-    add_expense(date, amount, category, description)
+    add_expense(date, amount_with_currency, category, description)
     print("Expense added successfully")
 
     amountentry.delete(0, END)
     categorymenu.set("Select a Category")
     descriptentry.delete(0, END)
+
+    refresh_treeview()  # Refresh the Treeview in expenses.py
 
 
 
