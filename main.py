@@ -28,7 +28,7 @@ def main():
 
     # View Expenses Tab
     expenses_frame = Frame(navigationBar)
-    create_expenses(expenses_frame)  # Call function from expenses.py
+    tree = create_expenses(expenses_frame)  # Call function from expenses.py
     navigationBar.add(expenses_frame, text="View Expenses")
 
     # View Expenses Tab
