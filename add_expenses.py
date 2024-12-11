@@ -5,7 +5,7 @@ from database import add_expense
 from expenses import refresh_treeview
 
 def add_expenses(frame):
-    categories = ["Food", "Transpo", "Utilities", "Rent", "Insurance", "Health", "Education", "Entertainment", "Others"]
+    categories = ["Food", "Transportation", "Utilities", "Rent", "Insurance", "Health", "Education", "Entertainment", "Others"]
 
 
     """Function to set up the Expenses tab"""

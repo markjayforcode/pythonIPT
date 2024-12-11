@@ -1,79 +1,156 @@
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 import sqlite3
+from datetime import datetime
 
 def create_expenses(frame):
 	categories = ["Food", "Transportation", "Utilities", "Rent", "Insurance", "Health", "Education", "Entertainment", "Others"]
 
-	# Filter section (date and category filters)
-	filterlbl = Label(frame, text="Filter by:", font="20")
-	filterlbl.grid(row=0, column=0, sticky="w")
+	# Filter section frame
+	filter_frame = LabelFrame(frame, text="Filter Options", font=("Arial", 11, "bold"))
+	filter_frame.grid(row=0, column=0, columnspan=7, padx=10, pady=5, sticky="ew")
 
-	datelbl = Label(frame, text="Date:", font="20")
-	datelbl.grid(row=0, column=1, padx=(10, 0), sticky="w")
+	# Filter components
+	filterlbl = Label(filter_frame, text="Filter by:", font=("Arial", 10))
+	filterlbl.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-	datefilter = DateEntry(frame, width=12, background='darkblue', foreground='white', borderwidth=2, font="20")
-	datefilter.grid(row=0, column=2, padx=(10, 0), sticky="w")
+	datelbl = Label(filter_frame, text="Date:", font=("Arial", 10))
+	datelbl.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-	categorymenu = ttk.Combobox(frame, values=categories, state="readonly", font="20", width=15)
-	categorymenu.grid(row=0, column=5, padx=(10, 0), sticky="w")
-	categorymenu.set("Category")  # Default value
+	datefilter = DateEntry(filter_frame, width=12, background='darkblue', 
+						  foreground='white', borderwidth=2, font=("Arial", 10))
+	datefilter.grid(row=0, column=2, padx=5, pady=5, sticky="w")
 
-	filterbtn = Button(frame, text="Filter", font="50")
-	filterbtn.grid(row=0, column=6, padx=(10, 0), sticky="w")
+	categorymenu = ttk.Combobox(filter_frame, values=categories, 
+							   state="readonly", font=("Arial", 10), width=15)
+	categorymenu.grid(row=0, column=3, padx=5, pady=5, sticky="w")
+	categorymenu.set("Category")
 
-	# New frame for Treeview table
-	tree_frame = Frame(frame)  # Create a new frame for the Treeview
-	tree_frame.grid(row=1, column=0, columnspan=7, pady=10, padx=10, sticky="nsew")  # Place it in grid
+	def apply_filter():
+		for item in tree.get_children():
+			tree.delete(item)
 
-	# Treeview widget for expenses
+		conn = sqlite3.connect('expenses.db')
+		c = conn.cursor()
+		
+		query = "SELECT date, category, amount, description FROM expenses WHERE 1=1"
+		params = []
+
+		if datefilter.get() != datetime.today().strftime('%m/%d/%y'):
+			query += " AND date = ?"
+			params.append(datefilter.get())
+			
+		if categorymenu.get() != "Category":
+			query += " AND category = ?"
+			params.append(categorymenu.get())
+
+		c.execute(query, params)
+		rows = c.fetchall()
+
+		for row in rows:
+			tree.insert("", "end", values=row)
+
+		conn.close()
+
+	def clear_filter():
+		datefilter.set_date(datetime.today())
+		categorymenu.set("Category")
+		refresh_treeview()
+
+	def delete_selected():
+		selected_items = tree.selection()
+		if not selected_items:
+			messagebox.showwarning("Warning", "Please select an item to delete")
+			return
+
+		if messagebox.askyesno("Confirm Delete", "Are you sure you want to delete the selected expense(s)?"):
+			conn = sqlite3.connect('expenses.db')
+			c = conn.cursor()
+			
+			for item in selected_items:
+				values = tree.item(item)['values']
+				c.execute("""DELETE FROM expenses 
+						   WHERE date=? AND category=? AND amount=? AND description=?""", 
+						   (values[0], values[1], values[2], values[3]))
+			
+			conn.commit()
+			conn.close()
+			refresh_treeview()
+			messagebox.showinfo("Success", "Selected expense(s) deleted successfully")
+
+	# Buttons frame
+	button_frame = Frame(filter_frame)
+	button_frame.grid(row=0, column=4, padx=5, pady=5, sticky="e")
+
+	filterbtn = Button(button_frame, text="Apply Filter", command=apply_filter,
+					  font=("Arial", 10), bg="#4CAF50", fg="white")
+	filterbtn.pack(side=LEFT, padx=2)
+
+	clearbtn = Button(button_frame, text="Clear Filter", command=clear_filter,
+					 font=("Arial", 10), bg="#2196F3", fg="white")
+	clearbtn.pack(side=LEFT, padx=2)
+
+	deletebtn = Button(button_frame, text="Delete Selected", command=delete_selected,
+					  font=("Arial", 10), bg="#f44336", fg="white")
+	deletebtn.pack(side=LEFT, padx=2)
+
+	# Treeview frame
+	tree_frame = Frame(frame)
+	tree_frame.grid(row=1, column=0, columnspan=7, pady=5, padx=10, sticky="nsew")
+
+	# Treeview widget
 	global tree
-	tree = ttk.Treeview(tree_frame, columns=("Date", "Category", "Amount", "Description"), show="headings")
+	tree = ttk.Treeview(tree_frame, columns=("Date", "Category", "Amount", "Description"), 
+					   show="headings", selectmode="extended")
 
-	# Define column headings
-	tree.heading("Date", text="Date")
-	tree.heading("Category", text="Category")
-	tree.heading("Amount", text="Amount")
-	tree.heading("Description", text="Description")
+	# Define column headings and widths
+	columns = {
+		"Date": 100,
+		"Category": 150,
+		"Amount": 100,
+		"Description": 200
+	}
 
-	# Define column widths (optional)
-	tree.column("Date", width=100)
-	tree.column("Category", width=150)
-	tree.column("Amount", width=100)
-	tree.column("Description", width=200)
+	for col, width in columns.items():
+		tree.heading(col, text=col, command=lambda c=col: sort_treeview(c))
+		tree.column(col, width=width)
 
-	# Add a vertical scrollbar for the Treeview
+	# Add scrollbars
 	scroll_y = Scrollbar(tree_frame, orient="vertical", command=tree.yview)
-	tree.config(yscrollcommand=scroll_y.set)
+	scroll_x = Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
+	tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 
-	# Use grid for both tree and scrollbar to align them properly
+	# Grid layout for tree and scrollbars
 	tree.grid(row=0, column=0, sticky="nsew")
 	scroll_y.grid(row=0, column=1, sticky="ns")
+	scroll_x.grid(row=1, column=0, sticky="ew")
 
-	# Make the tree_frame expand with the window
+	# Configure grid weights
 	tree_frame.grid_rowconfigure(0, weight=1)
 	tree_frame.grid_columnconfigure(0, weight=1)
 
-	# Fetch and display data
+	# Initial data load
 	refresh_treeview()
+	
+	return tree
+
+def sort_treeview(col):
+	items = [(tree.set(item, col), item) for item in tree.get_children("")]
+	items.sort()
+	for index, (val, item) in enumerate(items):
+		tree.move(item, "", index)
 
 def refresh_treeview():
-	# Clear existing data
 	for item in tree.get_children():
 		tree.delete(item)
 
-	# Connect to the database and fetch the data
 	conn = sqlite3.connect('expenses.db')
 	c = conn.cursor()
-
-	# Query the database for all expenses
-	c.execute("SELECT date, category, amount, description FROM expenses")
+	c.execute("SELECT date, category, amount, description FROM expenses ORDER BY date DESC")
 	rows = c.fetchall()
 
-	# Insert data into the Treeview
 	for row in rows:
 		tree.insert("", "end", values=row)
 
-	# Close the database connection
 	conn.close()
