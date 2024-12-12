@@ -1,11 +1,15 @@
 from tkinter import *
 from tkinter import ttk, messagebox, filedialog
+from database import get_user_budget, update_user_budget
 import sqlite3
 import json
 import os
 import csv
 from datetime import datetime
 from session import UserSession
+
+user_id = UserSession.get_user()  # Get the logged-in user
+user_budget = get_user_budget(user_id)
 
 # Load or create settings configuration
 def load_settings():
@@ -57,7 +61,10 @@ def setting(frame):
     budgetlbl = Label(budget_frame, text="Monthly Budget (₱):", font=("Arial", 10))
     budgetlbl.grid(row=0, column=0, padx=10, pady=5, sticky="w")
 
-    budget_var = StringVar(value=str(settings_data.get("budget", 0)))
+   
+   
+    budget_var = StringVar(value=str(user_budget))
+
     budgetentry = Entry(budget_frame, font=("Arial", 10), textvariable=budget_var)
     budgetentry.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
@@ -66,37 +73,38 @@ def setting(frame):
     data_frame.grid(row=1, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
 
     def save_settings():
-        try:
-            budget = float(budget_var.get())
-            if budget < 0:
-                messagebox.showerror("Error", "Budget cannot be negative!")
-                return
-                
-            settings_dict = {
-                "budget": budget
-            }
-            save_settings_to_file(settings_dict)
-            messagebox.showinfo("Success", "Settings saved successfully!")
-        except ValueError:
-            messagebox.showerror("Error", "Please enter a valid number for budget!")
+     try:
+        budget = float(budget_var.get())
+        if budget < 0:
+            messagebox.showerror("Error", "Budget cannot be negative!")
+            return
+        
+        user_id = UserSession.get_user()
+        if update_user_budget(user_id, budget):
+            messagebox.showinfo("Success", "Budget updated successfully!")
+        else:
+            messagebox.showerror("Error", "Failed to update budget!")
+     except ValueError:
+        messagebox.showerror("Error", "Please enter a valid number for budget!")
+
 
     def reset_data():
         if messagebox.askyesno("Confirm Reset", "Are you sure you want to reset all data? This action cannot be undone!"):
-            try:
-                conn = sqlite3.connect('expenses.db')
+         try:
+            user_id = UserSession.get_user()
+            with get_db_connection() as conn:
                 c = conn.cursor()
-                c.execute("DELETE FROM expenses")
-                conn.commit()
-                conn.close()
+                # Delete only this user's expenses
+                c.execute("DELETE FROM expenses WHERE user_id = ?", (user_id,))
                 
-                # Reset settings to default
-                settings_dict = {"budget": 0}
-                save_settings_to_file(settings_dict)
+                # Reset this user's budget
+                update_user_budget(user_id, 0)
                 budget_var.set("0")
                 
-                messagebox.showinfo("Success", "All data has been reset successfully!")
-            except Exception as e:
-                messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            messagebox.showinfo("Success", "Your data has been reset successfully!")
+         except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
 
     def export_data():
         user_id = UserSession.get_user()
