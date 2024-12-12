@@ -195,3 +195,25 @@ def setting(frame):
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_columnconfigure(1, weight=1)
 
+ # Add logout button at bottom right
+    def logout():
+        if messagebox.askyesno("Logout", "Are you sure you want to logout?"):
+            try:
+                budget = float(budget_var.get())
+                settings_dict = {"budget": budget}
+                save_settings_to_file(settings_dict)
+            except ValueError:
+                pass
+                
+            UserSession.clear()
+            frame.master.master.master.destroy()
+            from auth import AuthWindow
+            root = Tk()
+            auth_window = AuthWindow(root)
+            root.mainloop()
+
+    logout_btn = Button(frame, text="Logout", command=logout,
+                       font=("Arial", 10), bg="#f44336", fg="white",
+                       width=10, padx=10)
+    logout_btn.grid(row=3, column=1, pady=(0, 20), padx=20, sticky="se")
+
