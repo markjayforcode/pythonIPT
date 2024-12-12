@@ -25,6 +25,22 @@ class AuthWindow:
         
         create_user_table()
         
+        # Center the window
+        # Get the screen width and height
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        # Get the window width and height
+        window_width = 400  # Adjust this to your login window width
+        window_height = 300  # Adjust this to your login window height
+        
+        # Calculate position coordinates
+        x = (screen_width/2) - (window_width/2)
+        y = (screen_height/2) - (window_height/2)
+        
+        # Set the position of the window to the center of the screen
+        root.geometry(f'{window_width}x{window_height}+{int(x)}+{int(y)}')
+        
         self.show_login()
     
     def show_login(self):
@@ -148,5 +164,15 @@ class AuthWindow:
     
     def start_main_app(self):
         root = Tk()
+        
+        # Center the main expense tracker window
+        window_width = 800
+        window_height = 600
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width/2) - (window_width/2)
+        y = (screen_height/2) - (window_height/2)
+        root.geometry(f"{window_width}x{window_height}+{int(x)}+{int(y)}")
+        
         from main import initialize_main_window
         initialize_main_window(root) 

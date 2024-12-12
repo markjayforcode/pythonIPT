@@ -18,7 +18,15 @@ def initialize_main_window(root):
         root.destroy()
         return
         
-    root.geometry("800x600")
+    # Set window size and center it
+    window_width = 800
+    window_height = 600
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width/2) - (window_width/2)
+    y = (screen_height/2) - (window_height/2)
+    root.geometry(f"{window_width}x{window_height}+{int(x)}+{int(y)}")
+    
     root.resizable(True, True)
     root.title(f"Expense Tracker - {UserSession.get_user()}")
 
@@ -84,6 +92,16 @@ def main():
     
     # Start with login window
     login_root = Tk()
+    
+    # Center the login window
+    window_width = 400  # Match this with your actual login window width
+    window_height = 300  # Match this with your actual login window height
+    screen_width = login_root.winfo_screenwidth()
+    screen_height = login_root.winfo_screenheight()
+    x = (screen_width/2) - (window_width/2)
+    y = (screen_height/2) - (window_height/2)
+    login_root.geometry(f'{window_width}x{window_height}+{int(x)}+{int(y)}')
+    
     auth_window = AuthWindow(login_root)
     login_root.mainloop()
 
