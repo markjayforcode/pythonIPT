@@ -15,9 +15,13 @@ def create_dashboard(frame, navigationBar):
     summary_frame.grid(row=1, column=0, columnspan=2, padx=20, sticky="ew")
 
     def update_dashboard():
-        # Get budget from settings
-        settings = load_settings()
-        budget = settings.get("budget", 0)
+         # Get budget from database for current user
+        conn = sqlite3.connect('expenses.db')
+        c = conn.cursor()
+        user_id = UserSession.get_user()
+        c.execute("SELECT monthly_budget FROM users WHERE username = ?", (user_id,))
+        budget = c.fetchone()[0] or 0  # If no budget found, default to 0
+        conn.close()
         
         # Get total expenses for current user
         conn = sqlite3.connect('expenses.db')
