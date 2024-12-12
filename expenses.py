@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 import sqlite3
 from datetime import datetime
+from session import UserSession
+from database import get_user_expenses
 
 def create_expenses(frame):
 	categories = ["Food", "Transportation", "Utilities", "Rent", "Insurance", "Health", "Education", "Entertainment", "Others"]
@@ -33,9 +35,10 @@ def create_expenses(frame):
 
 		conn = sqlite3.connect('expenses.db')
 		c = conn.cursor()
+		user_id = UserSession.get_user()
 		
-		query = "SELECT date, category, amount, description FROM expenses WHERE 1=1"
-		params = []
+		query = "SELECT date, category, amount, description FROM expenses WHERE user_id = ?"
+		params = [user_id]
 
 		if datefilter.get() != datetime.today().strftime('%m/%d/%y'):
 			query += " AND date = ?"
@@ -67,12 +70,13 @@ def create_expenses(frame):
 		if messagebox.askyesno("Confirm Delete", "Are you sure you want to delete the selected expense(s)?"):
 			conn = sqlite3.connect('expenses.db')
 			c = conn.cursor()
+			user_id = UserSession.get_user()
 			
 			for item in selected_items:
 				values = tree.item(item)['values']
 				c.execute("""DELETE FROM expenses 
-						   WHERE date=? AND category=? AND amount=? AND description=?""", 
-						   (values[0], values[1], values[2], values[3]))
+						   WHERE date=? AND category=? AND amount=? AND description=? AND user_id=?""", 
+						   (values[0], values[1], values[2], values[3], user_id))
 			
 			conn.commit()
 			conn.close()
@@ -133,6 +137,14 @@ def create_expenses(frame):
 	# Initial data load
 	refresh_treeview()
 	
+	def auto_refresh():
+		refresh_treeview()
+		# Schedule next refresh in 30 seconds
+		frame.after(30000, auto_refresh)
+	
+	# Start auto-refresh
+	auto_refresh()
+	
 	return tree
 
 def sort_treeview(col):
@@ -142,15 +154,34 @@ def sort_treeview(col):
 		tree.move(item, "", index)
 
 def refresh_treeview():
+	# Clear existing items
 	for item in tree.get_children():
 		tree.delete(item)
-
-	conn = sqlite3.connect('expenses.db')
-	c = conn.cursor()
-	c.execute("SELECT date, category, amount, description FROM expenses ORDER BY date DESC")
-	rows = c.fetchall()
-
-	for row in rows:
-		tree.insert("", "end", values=row)
-
-	conn.close()
+		
+	try:
+		# Get current user from session
+		user_id = UserSession.get_user()
+		if not user_id:
+			messagebox.showerror("Error", "User session not found")
+			return
+			
+		# Get expenses from database
+		conn = sqlite3.connect('expenses.db')
+		c = conn.cursor()
+		c.execute("""
+			SELECT date, category, amount, description 
+			FROM expenses 
+			WHERE user_id = ? 
+			ORDER BY date DESC
+		""", (user_id,))
+		
+		expenses = c.fetchall()
+		
+		# Insert expenses into treeview
+		for expense in expenses:
+			tree.insert('', 'end', values=expense)
+			
+		conn.close()
+		
+	except Exception as e:
+		messagebox.showerror("Database Error", f"Failed to load expenses: {str(e)}")
