@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import sqlite3
 import hashlib
 from session import UserSession
+from PIL import Image, ImageTk
 
 def create_user_table():
     conn = sqlite3.connect('expenses.db')
@@ -20,19 +21,18 @@ class AuthWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("Expense Tracker - Login")
-        self.root.geometry("400x300")
+        self.root.geometry("400x600")
         self.root.resizable(False, False)
         
         create_user_table()
         
         # Center the window
-        # Get the screen width and height
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         
         # Get the window width and height
-        window_width = 400  # Adjust this to your login window width
-        window_height = 300  # Adjust this to your login window height
+        window_width = 400
+        window_height = 600
         
         # Calculate position coordinates
         x = (screen_width/2) - (window_width/2)
@@ -49,22 +49,77 @@ class AuthWindow:
             widget.destroy()
             
         frame = Frame(self.root)
-        frame.pack(pady=20)
+        frame.pack(expand=True)
         
-        Label(frame, text="Login", font=("Arial", 20, "bold")).pack(pady=10)
+        # Title frame with logo3 and login text in vertical arrangement
+        title_frame = Frame(frame)
+        title_frame.pack(pady=(0, 5))
         
-        Label(frame, text="Username:", font=("Arial", 10)).pack()
-        self.username = Entry(frame, font=("Arial", 10))
-        self.username.pack(pady=5)
+        # Center container for logo3
+        logo_container = Frame(title_frame, width=400, height=261)
+        logo_container.pack()
+        logo_container.pack_propagate(False)
         
-        Label(frame, text="Password:", font=("Arial", 10)).pack()
-        self.password = Entry(frame, font=("Arial", 10), show="*")
-        self.password.pack(pady=5)
+        # Load and display logo3.png with specific size using PIL
+        try:
+            logo3_pil = Image.open("logo3.png")
+            logo3_pil = logo3_pil.resize((321, 261), Image.LANCZOS)
+            logo3_img = ImageTk.PhotoImage(logo3_pil)
+            logo3_label = Label(logo_container, image=logo3_img)
+            logo3_label.image = logo3_img
+            logo3_label.place(relx=0.5, rely=0.5, anchor="center")
+        except Exception as e:
+            print(f"Error loading logo3.png: {e}")
         
-        Button(frame, text="Login", command=self.login, 
+        Label(title_frame, text="Login", font=("Arial", 20, "bold")).pack(pady=(0, 20))
+        
+        # Content frame for username, password, and buttons
+        content_frame = Frame(frame)
+        content_frame.pack(pady=(0, 40))
+        
+        # Username row
+        username_frame = Frame(content_frame)
+        username_frame.pack(pady=10)
+        
+        try:
+            logo_img = PhotoImage(file="logo.png")
+            logo_img = logo_img.subsample(int(logo_img.width()/22), int(logo_img.height()/27))
+            logo_label = Label(username_frame, image=logo_img)
+            logo_label.image = logo_img
+            logo_label.pack(side=LEFT, padx=5)
+        except Exception as e:
+            print(f"Error loading logo.png: {e}")
+        
+        username_container = Frame(username_frame)
+        username_container.pack(side=LEFT)
+        Label(username_container, text="Username:", font=("Arial", 10)).pack(side=LEFT, padx=(0,5))
+        self.username = Entry(username_container, font=("Arial", 10))
+        self.username.pack(side=LEFT)
+        
+        # Password row
+        password_frame = Frame(content_frame)
+        password_frame.pack(pady=10)
+        
+        try:
+            logo2_img = PhotoImage(file="logo2.png")
+            logo2_img = logo2_img.subsample(int(logo2_img.width()/22), int(logo2_img.height()/27))
+            logo2_label = Label(password_frame, image=logo2_img)
+            logo2_label.image = logo2_img
+            logo2_label.pack(side=LEFT, padx=5)
+        except Exception as e:
+            print(f"Error loading logo2.png: {e}")
+        
+        password_container = Frame(password_frame)
+        password_container.pack(side=LEFT)
+        Label(password_container, text="Password:", font=("Arial", 10)).pack(side=LEFT, padx=(0,5))
+        self.password = Entry(password_container, font=("Arial", 10), show="*")
+        self.password.pack(side=LEFT)
+        
+        # Buttons
+        Button(content_frame, text="Login", command=self.login, 
                bg="#4CAF50", fg="white", font=("Arial", 10)).pack(pady=10)
         
-        Button(frame, text="Create Account", command=self.show_signup,
+        Button(content_frame, text="Create Account", command=self.show_signup,
                bg="#2196F3", fg="white", font=("Arial", 10)).pack()
     
     def show_signup(self):
@@ -73,27 +128,96 @@ class AuthWindow:
             widget.destroy()
             
         frame = Frame(self.root)
-        frame.pack(pady=20)
+        frame.pack(pady=10)
         
-        Label(frame, text="Create Account", font=("Arial", 20, "bold")).pack(pady=10)
+        # Title frame with logo3
+        title_frame = Frame(frame)
+        title_frame.pack(pady=5)
         
-        Label(frame, text="Username:", font=("Arial", 10)).pack()
-        self.new_username = Entry(frame, font=("Arial", 10))
-        self.new_username.pack(pady=5)
+        # Load and display logo3.png with specific size using PIL
+        try:
+            logo3_pil = Image.open("logo3.png")
+            logo3_pil = logo3_pil.resize((321, 261), Image.LANCZOS)
+            logo3_img = ImageTk.PhotoImage(logo3_pil)
+            logo3_label = Label(title_frame, image=logo3_img)
+            logo3_label.image = logo3_img  # Keep a reference!
+            logo3_label.pack(pady=(0, 5))
+        except Exception as e:
+            print(f"Error loading logo3.png: {e}")
         
-        Label(frame, text="Password:", font=("Arial", 10)).pack()
-        self.new_password = Entry(frame, font=("Arial", 10), show="*")
-        self.new_password.pack(pady=5)
+        Label(title_frame, text="Create Account", font=("Arial", 20, "bold")).pack()
         
-        Label(frame, text="Confirm Password:", font=("Arial", 10)).pack()
-        self.confirm_password = Entry(frame, font=("Arial", 10), show="*")
-        self.confirm_password.pack(pady=5)
+        # Username row
+        username_frame = Frame(frame)
+        username_frame.pack(pady=5)
         
+        # Load and display logo.png with specific size
+        try:
+            logo_img = PhotoImage(file="logo.png")
+            logo_img = logo_img.subsample(int(logo_img.width()/22), int(logo_img.height()/27))
+            logo_label = Label(username_frame, image=logo_img)
+            logo_label.image = logo_img
+            logo_label.pack(side=LEFT, padx=5)
+        except Exception as e:
+            print(f"Error loading logo.png: {e}")
+        
+        # Username label and entry in same container
+        username_container = Frame(username_frame)
+        username_container.pack(side=LEFT)
+        Label(username_container, text="Username:", font=("Arial", 10)).pack(side=LEFT, padx=(0,5))
+        self.new_username = Entry(username_container, font=("Arial", 10))
+        self.new_username.pack(side=LEFT)
+        
+        # Password row
+        password_frame = Frame(frame)
+        password_frame.pack(pady=5)
+        
+        # Load and display logo2.png with specific size
+        try:
+            logo2_img = PhotoImage(file="logo2.png")
+            logo2_img = logo2_img.subsample(int(logo2_img.width()/22), int(logo2_img.height()/27))
+            logo2_label = Label(password_frame, image=logo2_img)
+            logo2_label.image = logo2_img
+            logo2_label.pack(side=LEFT, padx=5)
+        except Exception as e:
+            print(f"Error loading logo2.png: {e}")
+        
+        # Password label and entry in same container
+        password_container = Frame(password_frame)
+        password_container.pack(side=LEFT)
+        Label(password_container, text="Password:", font=("Arial", 10)).pack(side=LEFT, padx=(0,5))
+        self.new_password = Entry(password_container, font=("Arial", 10), show="*")
+        self.new_password.pack(side=LEFT)
+        
+        # Confirm Password row
+        confirm_frame = Frame(frame)
+        confirm_frame.pack(pady=5)
+        
+        # Load and display logo2.png again for confirm password
+        try:
+            logo2_confirm_img = PhotoImage(file="logo2.png")
+            logo2_confirm_img = logo2_confirm_img.subsample(int(logo2_confirm_img.width()/22), int(logo2_confirm_img.height()/27))
+            logo2_confirm_label = Label(confirm_frame, image=logo2_confirm_img)
+            logo2_confirm_label.image = logo2_confirm_img
+            logo2_confirm_label.pack(side=LEFT, padx=5)
+        except Exception as e:
+            print(f"Error loading logo2.png: {e}")
+        
+        # Confirm Password label and entry in same container
+        confirm_container = Frame(confirm_frame)
+        confirm_container.pack(side=LEFT)
+        Label(confirm_container, text="Confirm Password:", font=("Arial", 10)).pack(side=LEFT, padx=(0,5))
+        self.confirm_password = Entry(confirm_container, font=("Arial", 10), show="*")
+        self.confirm_password.pack(side=LEFT)
+        
+        # Buttons with specific sizes
         Button(frame, text="Sign Up", command=self.signup,
-               bg="#4CAF50", fg="white", font=("Arial", 10)).pack(pady=10)
+               bg="#4CAF50", fg="white", font=("Arial", 10),
+               width=15, height=1).pack(pady=10)
         
         Button(frame, text="Back to Login", command=self.show_login,
-               bg="#2196F3", fg="white", font=("Arial", 10)).pack()
+               bg="#2196F3", fg="white", font=("Arial", 10),
+               width=15, height=1).pack()
     
     def login(self):
         username = self.username.get()
@@ -143,24 +267,29 @@ class AuthWindow:
             messagebox.showerror("Error", "Passwords do not match")
             return
         
-        conn = sqlite3.connect('expenses.db')
-        c = conn.cursor()
-        
-        # Check if username already exists
-        c.execute("SELECT username FROM users WHERE username=?", (username,))
-        if c.fetchone():
+        try:
+            conn = sqlite3.connect('expenses.db')
+            c = conn.cursor()
+            
+            # Check if username already exists
+            c.execute("SELECT username FROM users WHERE username=?", (username,))
+            if c.fetchone():
+                messagebox.showerror("Error", "Username already exists")
+                return
+            
+            # Create new user (removed the 'role' value)
+            hashed_password = hash_password(password)
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+                     (username, hashed_password))  # Only inserting username and password
+            conn.commit()
             conn.close()
-            messagebox.showerror("Error", "Username already exists")
-            return
-        
-        # Create new user
-        hashed_password = hash_password(password)
-        c.execute("INSERT INTO users VALUES (?, ?)", (username, hashed_password))
-        conn.commit()
-        conn.close()
-        
-        messagebox.showinfo("Success", "Account created successfully!")
-        self.show_login()
+            
+            messagebox.showinfo("Success", "Account created successfully!")
+            self.show_login()
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            if 'conn' in locals():
+                conn.close()
     
     def start_main_app(self):
         root = Tk()
