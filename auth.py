@@ -5,6 +5,7 @@ import hashlib
 from session import UserSession
 from PIL import Image, ImageTk
 
+
 def create_user_table():
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
@@ -32,7 +33,7 @@ class AuthWindow:
         
         # Get the window width and height
         window_width = 400
-        window_height = 600
+        window_height = 550
         
         # Calculate position coordinates
         x = (screen_width/2) - (window_width/2)
@@ -57,8 +58,8 @@ class AuthWindow:
         
         # Center container for logo3
         logo_container = Frame(title_frame, width=400, height=261)
-        logo_container.pack()
-        logo_container.pack_propagate(False)
+        logo_container.grid(row=0, column=0, columnspan=2)
+        logo_container.grid_propagate(False)
         
         # Load and display logo3.png with specific size using PIL
         try:
@@ -67,11 +68,11 @@ class AuthWindow:
             logo3_img = ImageTk.PhotoImage(logo3_pil)
             logo3_label = Label(logo_container, image=logo3_img)
             logo3_label.image = logo3_img
-            logo3_label.place(relx=0.5, rely=0.5, anchor="center")
+            logo3_label.place(x=60, y=30)
         except Exception as e:
             print(f"Error loading logo3.png: {e}")
         
-        Label(title_frame, text="Login", font=("Arial", 20, "bold")).pack(pady=(0, 20))
+        Label(title_frame, text="Login", font=("Arial", 20, "bold")).grid(row=1, column=0, columnspan=2, pady=(0, 20))
         
         # Content frame for username, password, and buttons
         content_frame = Frame(frame)
@@ -304,4 +305,4 @@ class AuthWindow:
         root.geometry(f"{window_width}x{window_height}+{int(x)}+{int(y)}")
         
         from main import initialize_main_window
-        initialize_main_window(root) 
+        initialize_main_window(root)
